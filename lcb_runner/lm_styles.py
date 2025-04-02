@@ -1,3 +1,6 @@
+import os
+import json
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -29,6 +32,7 @@ class LMStyle(Enum):
     LLaMa3 = "LLaMa3"
 
     DeepSeekR1 = "DeepSeekR1"
+    Custom = "Custom"
 
 
 @dataclass
@@ -669,6 +673,21 @@ LanguageModelList: list[LanguageModel] = [
         "https://www.wenxiaobai.com/",
     ),
 ]
+
+# Add custom models
+custom_style_path = os.path.join(os.path.dirname(__file__), "custom_styles.json")
+with open(custom_style_path, "r") as f:
+    custom_styles = json.load(f)
+for entry in custom_styles:
+    date = datetime.strptime(entry["release_date"], "%Y-%m-%d")
+    lm = LanguageModel(
+        model_name=entry["model_name"],
+        model_repr=entry["model_name"],
+        model_style=LMStyle.Custom,
+        release_date=date,
+        link=entry["model_path"],
+    )
+    LanguageModelList.append(lm)
 
 LanguageModelStore: dict[str, LanguageModel] = {
     lm.model_name: lm for lm in LanguageModelList
