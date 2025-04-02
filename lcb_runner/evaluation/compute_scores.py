@@ -92,6 +92,10 @@ def compute_scores(args):
         results = [result for result in results if result["platform"] == args.platform]
 
     print(len(results))
+    if len(results) == 0:
+        print("No results found")
+        return
+    
     totals = [len(x["graded_list"]) for x in results]
     corrects = [sum(x["graded_list"]) for x in results]
 
