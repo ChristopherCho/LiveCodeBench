@@ -5,7 +5,7 @@ from lcb_runner.runner.parser import get_args
 from lcb_runner.utils.scenarios import Scenario
 from lcb_runner.lm_styles import LanguageModelStore
 from lcb_runner.runner.runner_utils import build_runner
-from lcb_runner.utils.path_utils import get_output_path
+from lcb_runner.utils.path_utils import get_output_path, get_eval_all_output_path
 from lcb_runner.evaluation import extract_instance_results
 from lcb_runner.runner.scenario_router import (
     build_prompt_benchmark,
@@ -181,9 +181,13 @@ def main():
                 metrics[2] = old_eval_results[2] + metrics[2]
         elif args.scenario == Scenario.selfrepair:
             metadatas = metrics[2]
-            with open(
-                f"output/{model.model_repr}/{Scenario.codegeneration}_{args.codegen_n}_{args.temperature}_eval_all.json"
-            ) as f:
+
+            codegen_output_path = get_eval_all_output_path(
+                model.model_repr, args,
+                scenario=Scenario.codegeneration,
+                n=args.codegen_n
+            )
+            with open(codegen_output_path) as f:
                 code_gen_evals = json.load(f)
             original_code_lists = [
                 code_gen_eval["code_list"] for code_gen_eval in code_gen_evals
