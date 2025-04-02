@@ -192,7 +192,7 @@ def get_base_model_question_template_answer(question: CodeGenerationProblem):
 
 
 def format_prompt_generation(
-    question: CodeGenerationProblem, LanguageModelStyle: LMStyle
+    question: CodeGenerationProblem, LanguageModelStyle: LMStyle, **kwargs
 ) -> str:
     if LanguageModelStyle in [LMStyle.OpenAIChat, LMStyle.DeepSeekAPI]:
         chat_messages = [
@@ -309,6 +309,23 @@ def format_prompt_generation(
         prompt = f"{PromptConstants.SYSTEM_MESSAGE_DEEPSEEK_R1}"
         prompt += f"{get_deepseek_r1_question_template_answer(question)}"
         return prompt
+
+    if LanguageModelStyle == LMStyle.Custom:
+        from transformers import AutoTokenizer
+        chat_messages = [
+            {"role": "system", "content": PromptConstants.SYSTEM_MESSAGE_GENERIC},
+            {"role": "user", "content": get_generic_question_template_answer(question)},
+        ]
+
+        model_path = kwargs.get("link", None)
+        if model_path is None:
+            raise ValueError("model path should be provided as a link for custom models")
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        return tokenizer.apply_chat_template(
+            chat_messages,
+            tokenize=False,
+            add_generation_prompt=True
+        )
 
     if LanguageModelStyle == LMStyle.GenericBase:
         prompt = get_base_model_question_template_answer(question)

@@ -173,7 +173,7 @@ def get_qwen_question_template_answer(question: str, code, result, metadata):
     return prompt
 
 def format_prompt_self_repair(
-    question: str, LanguageModelStyle: LMStyle, code, result, metadata
+    question: str, LanguageModelStyle: LMStyle, code, result, metadata, **kwargs
 ) -> str:
     if result:
         # The code is accepted, no need to change anything.
@@ -259,48 +259,64 @@ def format_prompt_self_repair(
     elif LanguageModelStyle == LMStyle.CodeLLaMaInstruct:
         prompt = f"[INST] <<SYS>>\n{PromptConstants.SYSTEM_MESSAGE_GENERIC}\n<</SYS>>\n\n{get_cllama_question_template_answer(question, code, result,metadata)}\n[/INST]"
         return prompt
-    elif LanguageModelStyle == LMStyle.MagiCoder:
-        prompt = f"{PromptConstants.SYSTEM_MESSAGE_MAGIC}\n{get_magicoder_question_template_answer(question, code, result,metadata)}"
-        return prompt
-    elif LanguageModelStyle == LMStyle.WizardCoder:
-        prompt = f"{PromptConstants.SYSTEM_MESSAGE_WIZARD}\n\n{get_wizard_question_template_answer(question, code, result,metadata)}"
-        return prompt
-    elif LanguageModelStyle == LMStyle.Phind:
-        prompt = f"### System Prompt\n\n{PromptConstants.SYSTEM_MESSAGE_PHIND}\n\n### User Message\n\n{get_phind_question_template_answer(question, code, result,metadata)}"
-        return prompt
-    elif LanguageModelStyle == LMStyle.DracarysQwen:
-        prompt = f"{get_qwen_question_template_answer(question, code, result,metadata)}"
-        return prompt
-    elif LanguageModelStyle == LMStyle.DracarysLlama:
+    # elif LanguageModelStyle == LMStyle.MagiCoder:
+    #     prompt = f"{PromptConstants.SYSTEM_MESSAGE_MAGIC}\n{get_magicoder_question_template_answer(question, code, result,metadata)}"
+    #     return prompt
+    # elif LanguageModelStyle == LMStyle.WizardCoder:
+    #     prompt = f"{PromptConstants.SYSTEM_MESSAGE_WIZARD}\n\n{get_wizard_question_template_answer(question, code, result,metadata)}"
+    #     return prompt
+    # elif LanguageModelStyle == LMStyle.Phind:
+    #     prompt = f"### System Prompt\n\n{PromptConstants.SYSTEM_MESSAGE_PHIND}\n\n### User Message\n\n{get_phind_question_template_answer(question, code, result,metadata)}"
+    #     return prompt
+    # elif LanguageModelStyle == LMStyle.DracarysQwen:
+    #     prompt = f"{get_qwen_question_template_answer(question, code, result,metadata)}"
+    #     return prompt
+    # elif LanguageModelStyle == LMStyle.DracarysLlama:
+    #     chat_messages = [
+    #         {"role": "system", "content": PromptConstants.SYSTEM_MESSAGE_GENERIC},
+    #     ]
+    #     chat_messages += [
+    #         {
+    #             "role": "user",
+    #             "content": get_generic_question_template_answer(
+    #                 question, code, result, metadata
+    #             ),
+    #         },
+    #     ]
+
+    #     from transformers import AutoTokenizer
+
+    #     tokenizer = AutoTokenizer.from_pretrained(
+    #         "abacusai/Dracarys-Llama-3.1-70B-Instruct", padding_side="right", use_fast=False
+    #     )
+    #     return tokenizer.apply_chat_template(
+    #         chat_messages,
+    #         tokenize=False,
+    #         add_generation_prompt=True,
+    #         truncation=False,
+    #         padding=False,
+    #     )
+    # elif LanguageModelStyle == LMStyle.Eurusx:
+    #     prompt = "[INST] Write Python code to solve the task:\n"
+    #     prompt += f"{get_wizard_question_template_answer(question, code, result,metadata)}"
+    #     prompt += "[/INST]"
+    #     return prompt
+    elif LanguageModelStyle == LMStyle.Custom:
+        from transformers import AutoTokenizer
         chat_messages = [
             {"role": "system", "content": PromptConstants.SYSTEM_MESSAGE_GENERIC},
-        ]
-        chat_messages += [
-            {
-                "role": "user",
-                "content": get_generic_question_template_answer(
-                    question, code, result, metadata
-                ),
-            },
+            {"role": "user", "content": get_generic_question_template_answer(question, code, result, metadata)},
         ]
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            "abacusai/Dracarys-Llama-3.1-70B-Instruct", padding_side="right", use_fast=False
-        )
+        model_path = kwargs.get("link", None)
+        if model_path is None:
+            raise ValueError("model path should be provided as a link for custom models")
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
         return tokenizer.apply_chat_template(
             chat_messages,
             tokenize=False,
-            add_generation_prompt=True,
-            truncation=False,
-            padding=False,
+            add_generation_prompt=True
         )
-    if LanguageModelStyle == LMStyle.Eurusx:
-        prompt = "[INST] Write Python code to solve the task:\n"
-        prompt += f"{get_wizard_question_template_answer(question, code, result,metadata)}"
-        prompt += "[/INST]"
-        return prompt
     else:
         raise NotImplementedError(
             f"LanguageModelStyle {LanguageModelStyle} not implemented"

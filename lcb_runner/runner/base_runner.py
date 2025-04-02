@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from tqdm import tqdm
 
 from lcb_runner.lm_styles import LanguageModel
-from lcb_runner.utils.path_utils import get_cache_path
+from lcb_runner.utils.path_utils import get_cache_path, get_eval_all_output_path
 from lcb_runner.utils.multiprocess import run_tasks_in_parallel
 from lcb_runner.runner.scenario_router import Scenario
 
@@ -122,9 +122,14 @@ class BaseRunner(ABC):
 
     def run_main_repair(self, benchmark: list, format_prompt: callable) -> list[list[str]]:
         assert self.args.n == 1
-        with open(
-            f"output/{self.model.model_repr}/{Scenario.codegeneration}_{self.args.codegen_n}_{self.args.temperature}_eval_all.json"
-        ) as f:
+        
+        codegen_output_path = get_eval_all_output_path(
+            self.model.model_repr, self.args,
+            scenario=Scenario.codegeneration,
+            n=self.args.codegen_n
+        )
+
+        with open(codegen_output_path) as f:
             check_metadata_list = json.load(f)
 
         outputs = [
@@ -152,6 +157,7 @@ class BaseRunner(ABC):
                             code_list[code_idx],
                             graded_list[code_idx],
                             metadata[code_idx],
+                            link=self.model.link,
                         )
                         if prompt == "":
                             outputs[problem_idx][code_idx] = output_list[code_idx]
@@ -175,7 +181,7 @@ class BaseRunner(ABC):
             return self.run_main_repair(benchmark, format_prompt)
 
         prompts = [
-            format_prompt(problem, self.model.model_style) for problem in benchmark
+            format_prompt(problem, self.model.model_style, link=self.model.link) for problem in benchmark
         ]
         outputs = self.prompts_to_outputs(prompts)
         return outputs

@@ -21,20 +21,22 @@ def get_cache_path(model_repr:str, args) -> str:
     return path
 
 
-def get_output_path(model_repr:str, args) -> str:
-    scenario: Scenario = args.scenario
-    n = args.n
-    temperature = args.temperature
-    cot_suffix = "_cot" if args.cot_code_execution else ""
-    path = f"output/{model_repr}/{scenario}_{n}_{temperature}{cot_suffix}.json"
+def get_output_path(model_repr:str, args, **args_overrides) -> str:
+    scenario: Scenario = args_overrides.get("scenario", args.scenario)
+    n = args_overrides.get("n", args.n)
+    temperature = args_overrides.get("temperature", args.temperature)
+    cot_suffix = "_cot" if args_overrides.get("cot_code_execution", args.cot_code_execution) else ""
+    debug_suffix = "_DEBUG" if args_overrides.get("debug", args.debug) else ""
+    path = f"output/{model_repr}/{scenario}_{n}_{temperature}{cot_suffix}{debug_suffix}.json"
     ensure_dir(path)
     return path
 
 
-def get_eval_all_output_path(model_repr:str, args) -> str:
-    scenario: Scenario = args.scenario
-    n = args.n
-    temperature = args.temperature
-    cot_suffix = "_cot" if args.cot_code_execution else ""
-    path = f"output/{model_repr}/{scenario}_{n}_{temperature}{cot_suffix}_eval_all.json"
+def get_eval_all_output_path(model_repr:str, args, **args_overrides) -> str:
+    scenario: Scenario = args_overrides.get("scenario", args.scenario)
+    n = args_overrides.get("n", args.n)
+    temperature = args_overrides.get("temperature", args.temperature)
+    cot_suffix = "_cot" if args_overrides.get("cot_code_execution", args.cot_code_execution) else ""
+    debug_suffix = "_DEBUG" if args_overrides.get("debug", args.debug) else ""
+    path = f"output/{model_repr}/{scenario}_{n}_{temperature}{cot_suffix}{debug_suffix}_eval_all.json"
     return path
