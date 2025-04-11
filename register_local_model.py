@@ -8,6 +8,10 @@ CUSTOM_STYLES_PATH = os.path.join(os.path.dirname(__file__), "lcb_runner", "cust
 
 
 def main(args):
+    if not os.path.exists(CUSTOM_STYLES_PATH):
+        with open(CUSTOM_STYLES_PATH, "w") as f:
+            json.dump([], f, indent=4)
+
     with open(CUSTOM_STYLES_PATH, "r") as f:
         custom_styles = json.load(f)
 

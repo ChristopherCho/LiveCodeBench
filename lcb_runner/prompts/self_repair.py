@@ -49,11 +49,32 @@ def get_check_prompt(question: str, result, metadata):
         message = f"The above code is incorrect and got a wrong answer.\nInput: {metadata['inputs']}\nGenerated Output: {metadata['output']}\nExpected: {metadata['expected']}"
     elif metadata["error_code"] == -3:
         # time limit exceeded
-        message = f"The above code is incorrect and got time limit exceeded.\n{metadata['error']}\nInput: {metadata['inputs']}\nExpected: {metadata['expected']}"
-        pass
+        input_str = ""
+        if "input" in metadata:
+            input_str = f"\nInput: {metadata['input']}"
+        excepted_str = ""
+        if "expected" in metadata:
+            excepted_str = f"\nExpected: {metadata['expected']}"
+        
+        message = f"The above code is incorrect and got time limit exceeded.\n{metadata['error']}{input_str}{excepted_str}"
     elif metadata["error_code"] == -4:
         # runtime error
-        message = f"The above code is incorrect and got a runtime error.\nInput: {metadata['inputs']}\nExpected: {metadata['expected']}\n{metadata['error']}"
+        input_str = ""
+        if "input" in metadata:
+            input_str = f"\nInput: {metadata['input']}"
+        excepted_str = ""
+        if "expected" in metadata:
+            excepted_str = f"\nExpected: {metadata['expected']}"
+        error_str = ""
+        assert "error" in metadata or "error_message" in metadata, f"{metadata=}"
+        if "error" in metadata:
+            error_str = f"\n{metadata['error']}"
+        elif "error_message" in metadata:
+            error_str = f"\n{metadata['error_message']}"
+        
+        message = f"The above code is incorrect and got a runtime error.{input_str}{excepted_str}{error_str}"
+    elif metadata["error_code"] == -5:
+        message = f"The above code is incorrect and got a test runner error.\n{metadata['error']}"
     else:
         raise NotImplementedError(
             f"metadata['error_code'] = {metadata['error_code']} not implemented || {metadata=}"
