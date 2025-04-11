@@ -2,7 +2,7 @@ while getopts "m:n:t:o:d" opt; do
     case $opt in
         m) MODEL_PATH=$OPTARG ;;
         n) MODEL_NAME=$OPTARG ;;
-        t) TASKS=$OPTARG ;;
+        t) TASK=$OPTARG ;;
         o) OUTPUT_DIR=$OPTARG ;;
         d) DEBUG=true ;;
     esac
@@ -47,16 +47,15 @@ SUPPORTED_TASKS=(
     "testoutputprediction"
     "codeexecution"
 )
-if [ -z "$TASKS" ]; then
+if [ -z "$TASK" ]; then
     TASKS=${SUPPORTED_TASKS[@]}
-fi
-
-for task in ${TASKS[@]}; do
-    if [[ ! " ${SUPPORTED_TASKS[@]} " =~ " ${task} " ]]; then
-        echo "Task ${task} is not supported. Supported tasks: ${SUPPORTED_TASKS[@]}"
+else
+    if [[ ! " ${SUPPORTED_TASKS[@]} " =~ " ${TASK} " ]]; then
+        echo "Task ${TASK} is not supported. Supported tasks: ${SUPPORTED_TASKS[@]}"
         exit 1
     fi
-done
+    TASKS=($TASK)
+fi
 
 
 eval() {
