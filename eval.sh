@@ -1,8 +1,9 @@
-while getopts "m:n:t:d" opt; do
+while getopts "m:n:t:o:d" opt; do
     case $opt in
         m) MODEL_PATH=$OPTARG ;;
         n) MODEL_NAME=$OPTARG ;;
         t) TASKS=$OPTARG ;;
+        o) OUTPUT_DIR=$OPTARG ;;
         d) DEBUG=true ;;
     esac
 done
@@ -34,8 +35,11 @@ else
     MODEL_NAME="${MODEL_PATH}"
     LOCAL_MODEL_ARG=""
 fi
-MODEL_OUTPUT_DIR=output/${MODEL_EVAL_NAME}
 
+if [ -z "$OUTPUT_DIR" ]; then
+    OUTPUT_DIR=result/${MODEL_EVAL_NAME}
+    echo "OUTPUT_DIR is not provided. Set to $OUTPUT_DIR"
+fi
 
 SUPPORTED_TASKS=(
     "codegeneration"
@@ -67,12 +71,12 @@ eval() {
         fi
     fi
 
-    output_file_path=${MODEL_OUTPUT_DIR}/Scenario.${scenario}_${n}_0.2${cot_suffix}${DEBUG_SUFFIX}_eval_all.json
+    output_file_path=${OUTPUT_DIR}/Scenario.${scenario}_${n}_0.2${cot_suffix}${DEBUG_SUFFIX}_eval_all.json
     if [ -f ${output_file_path} ]; then
         (
             python -m lcb_runner.evaluation.compute_scores \
                 --eval_all_file ${output_file_path}
-        ) >${MODEL_OUTPUT_DIR}/${scenario}${cot_suffix}${DEBUG_SUFFIX}_scores.log
+        ) >${OUTPUT_DIR}/${scenario}${cot_suffix}${DEBUG_SUFFIX}_scores.log
     else
         echo "File ${output_file_path} does not exist. Check if the model is renamed in output."
     fi
@@ -92,7 +96,7 @@ codegeneration() {
         ${DEBUG_ARG}
     eval codegeneration 10
     duration=$SECONDS
-    echo "Time taken: $duration seconds" >> ${MODEL_OUTPUT_DIR}/codegeneration${DEBUG_SUFFIX}_scores.log
+    echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/codegeneration${DEBUG_SUFFIX}_scores.log
 }
 
 
@@ -110,7 +114,7 @@ selfrepair() {
         ${DEBUG_ARG}
     eval selfrepair 1
     duration=$SECONDS
-    echo "Time taken: $duration seconds" >> ${MODEL_OUTPUT_DIR}/selfrepair${DEBUG_SUFFIX}_scores.log
+    echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/selfrepair${DEBUG_SUFFIX}_scores.log
 }
 
 
@@ -126,7 +130,7 @@ testoutputprediction() {
         ${DEBUG_ARG}
     eval testoutputprediction 10
     duration=$SECONDS
-    echo "Time taken: $duration seconds" >> ${MODEL_OUTPUT_DIR}/testoutputprediction${DEBUG_SUFFIX}_scores.log
+    echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/testoutputprediction${DEBUG_SUFFIX}_scores.log
 }
 
 
@@ -142,7 +146,7 @@ codeexecution() {
         ${DEBUG_ARG}
     eval codeexecution 10
     duration=$SECONDS
-    echo "Time taken: $duration seconds" >> ${MODEL_OUTPUT_DIR}/codeexecution${DEBUG_SUFFIX}_scores.log
+    echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/codeexecution${DEBUG_SUFFIX}_scores.log
 
     echo "Evaluating ${MODEL_NAME} on codeexecution with CoT"
     SECONDS=0
@@ -156,7 +160,7 @@ codeexecution() {
         ${DEBUG_ARG}
     eval codeexecution 10 true
     duration=$SECONDS
-    echo "Time taken: $duration seconds" >> ${MODEL_OUTPUT_DIR}/codeexecution_cot${DEBUG_SUFFIX}_scores.log
+    echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/codeexecution_cot${DEBUG_SUFFIX}_scores.log
 }
 
 
