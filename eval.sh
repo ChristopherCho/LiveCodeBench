@@ -46,6 +46,7 @@ SUPPORTED_TASKS=(
     "selfrepair"
     "testoutputprediction"
     "codeexecution"
+    "codeexecution_cot"
 )
 if [ -z "$TASK" ]; then
     TASKS=${SUPPORTED_TASKS[@]}
@@ -74,7 +75,8 @@ eval() {
     if [ -f ${output_file_path} ]; then
         (
             python -m lcb_runner.evaluation.compute_scores \
-                --eval_all_file ${output_file_path}
+                --eval_all_file ${output_file_path} \
+                --output_dir ${OUTPUT_DIR}
         ) >${OUTPUT_DIR}/${scenario}${cot_suffix}${DEBUG_SUFFIX}_scores.log
     else
         echo "File ${output_file_path} does not exist. Check if the model is renamed in output."
@@ -92,6 +94,7 @@ codegeneration() {
         --evaluate \
         --release_version release_v5 \
         --continue_existing_with_eval \
+        --output_dir ${OUTPUT_DIR} \
         ${DEBUG_ARG}
     eval codegeneration 10
     duration=$SECONDS
@@ -110,6 +113,7 @@ selfrepair() {
         --n 1 \
         --evaluate \
         --continue_existing_with_eval \
+        --output_dir ${OUTPUT_DIR} \
         ${DEBUG_ARG}
     eval selfrepair 1
     duration=$SECONDS
@@ -126,6 +130,7 @@ testoutputprediction() {
         --scenario testoutputprediction \
         --evaluate \
         --continue_existing_with_eval \
+        --output_dir ${OUTPUT_DIR} \
         ${DEBUG_ARG}
     eval testoutputprediction 10
     duration=$SECONDS
@@ -142,11 +147,15 @@ codeexecution() {
         --scenario codeexecution \
         --evaluate \
         --continue_existing_with_eval \
+        --output_dir ${OUTPUT_DIR} \
         ${DEBUG_ARG}
     eval codeexecution 10
     duration=$SECONDS
     echo "Time taken: $duration seconds" >> ${OUTPUT_DIR}/codeexecution${DEBUG_SUFFIX}_scores.log
+}
 
+
+codeexecution_cot() {
     echo "Evaluating ${MODEL_NAME} on codeexecution with CoT"
     SECONDS=0
     python -m lcb_runner.runner.main \
@@ -156,6 +165,7 @@ codeexecution() {
         --cot_code_execution \
         --evaluate \
         --continue_existing_with_eval \
+        --output_dir ${OUTPUT_DIR} \
         ${DEBUG_ARG}
     eval codeexecution 10 true
     duration=$SECONDS
